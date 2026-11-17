@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operación Transferencia · Escape room BEC</title>
+<style>
+:root{
+  --bg:#f6f4f2; --panel:#ffffff; --ink:#1b1b1b; --muted:#6a6560; --line:#e2ddd8;
+  --accent:#ff3a00; --accent-soft:#ffe6dc; --ok:#1e7a46; --ok-soft:#e1f3e8; --bad:#b3261e; --bad-soft:#fbe4e2;
+  --dark:#141414;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+.wrap{max-width:820px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;letter-spacing:.02em}
+.brand span{color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.85rem;color:var(--muted)}
+.chip b{color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:14px}
+h1,h2,h3{margin:0;line-height:1.25;text-wrap:balance}
+h1{font-size:1.6rem} h2{font-size:1.25rem} h3{font-size:1.02rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
+button{font:inherit;font-weight:650;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:10px 18px;cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+button.dark{background:var(--dark);border-color:var(--dark)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.opt:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input[type=number],input[type=text],select,textarea{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{width:100%;min-height:70px}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:4px;accent-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.mail{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.mail .hd{background:#f2efec;padding:10px 14px;font-size:.88rem;display:grid;gap:2px}
+.mail .bd{padding:14px;font-size:.95rem;white-space:pre-line}
+.mono{font-family:ui-monospace,Consolas,monospace;font-size:.88em;word-break:break-all}
+.agent{display:flex;gap:12px;align-items:flex-start;background:var(--dark);color:#f3f3f3;border-radius:12px;padding:12px 14px}
+.agent .av{flex:none;width:40px;height:40px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:800;color:#fff}
+.agent p{font-size:.93rem}
+.fb{border-radius:10px;padding:12px 14px;font-size:.93rem;display:grid;gap:4px}
+.fb.ok{background:var(--ok-soft);color:#11462a}
+.fb.bad{background:var(--bad-soft);color:#6d1712}
+.fb.info{background:#eef0f3;color:#2a2f36}
+.progress{display:flex;gap:6px}
+.progress i{flex:1;height:8px;border-radius:99px;background:var(--line)}
+.progress i.done{background:var(--accent)}
+.badge{display:flex;align-items:center;gap:14px;background:var(--accent-soft);border-radius:12px;padding:14px}
+.badge .medal{flex:none;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:1.4rem;font-weight:800}
+.digits{display:flex;gap:8px}
+.digits span{width:42px;height:50px;border-radius:10px;border:2px dashed var(--line);display:grid;place-items:center;font-size:1.4rem;font-weight:800}
+.digits span.got{border:2px solid var(--accent);color:var(--accent)}
+.clues{display:grid;gap:6px}
+.clue{border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer;background:#fff;text-align:left;color:var(--ink);font-weight:400}
+.clue.sel{border-color:var(--accent);background:var(--accent-soft)}
+.code{font-family:ui-monospace,Consolas,monospace;background:#f2efec;border-radius:10px;padding:12px;word-break:break-all;font-size:.9rem}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+th{background:#f2efec}
+.tablewrap{overflow-x:auto}
+.timer{font-variant-numeric:tabular-nums}
+.small{font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Operación <span>Transferencia</span></div>
+    <div class="chips" id="chips"></div>
+  </header>
+  <main id="app" class="card" aria-live="polite"></main>
+  <p class="muted small">Replicación a pequeña escala de Keller (2026), <i>Computers &amp; Security</i>, 171, 105120. Prototipo académico; la empresa y los correos son ficticios.</p>
+</div>
+
+<script>
+/* ===================== Configuración del estudio ===================== */
+// Asignación aleatoria por bloques de 2 (semilla 20261117) para los participantes 1-40.
+const ASSIGN = "CJCJCJCJCJJCJCCJJCJCCJCJJCJCJCJCCJJCJCCJ";
+const DIMS = ["Conciencia de la amenaza","Identificación de la amenaza","Evaluación del impacto","Elección de la táctica","Justificación de la táctica","Ejecución de la táctica","Revisión y seguimiento"];
+
+/* Test situacional (SJT): 7 ítems por forma, uno por dimensión de Keller (2026); 0-1-2 puntos; máx. 14 */
+const FORMS = {
+ A: {
+  title:"Caso A · Cambio de cuenta del proveedor",
+  mail:{from:"Distribuidora Sur - Facturación", addr:"facturacion@distribuidorasur-pe.com", to:"Contabilidad", subject:"Nueva cuenta para el pago de la factura F-0231",
+   body:"Estimados:\nPor una auditoría interna cambiamos de banco. A partir de hoy, por favor depositen la factura F-0231 (S/ 12 480) en nuestra nueva cuenta: 191-4471-2290-38.\nEs urgente para no detener el despacho de esta semana.\nSaludos,\nÁrea de Facturación"},
+  note:"El dominio que Distribuidora Sur siempre usa es @distribuidorasur.com.pe",
+  items:[
+   {q:"¿Qué tan riesgoso te parece este correo?", o:[["Alto: un cambio de cuenta pedido solo por correo es una señal típica de fraude.",2],["Bajo: es un proveedor con el que ya trabajamos.",0],["Medio: puede ser normal, lo reviso si tengo tiempo.",1]]},
+   {q:"Si fuera un ataque, ¿de qué tipo sería?", o:[["Phishing genérico para robar contraseñas.",1],["Fraude BEC: suplantan al proveedor para desviar un pago.",2],["Correo publicitario (spam).",0]]},
+   {q:"¿Qué pasaría si se paga a la nueva cuenta?", o:[["Solo se atrasaría el pago al proveedor.",0],["La empresa pierde el dinero y aún le debe la factura al proveedor real.",2],["Habría que reclamarle al banco, que suele devolver el dinero.",1]]},
+   {q:"¿Qué haces primero?", o:[["Respondo el correo y pido que confirmen el cambio.",0],["Le aviso a mi jefe y espero instrucciones.",1],["Llamo al proveedor al número que ya tenemos registrado, no al del correo.",2]]},
+   {q:"¿Por qué esa es la mejor acción?", o:[["Porque confirma el pedido por un canal que el atacante no controla.",2],["Porque así lo dice el manual de la empresa.",1],["Porque el proveedor verá que somos ordenados.",0]]},
+   {q:"Al revisar el correo, ¿en qué te fijas para confirmar la sospecha?", o:[["En el logo y la firma.",0],["En la ortografía del mensaje.",1],["En la dirección completa del remitente y su dominio.",2]]},
+   {q:"Después de confirmar que era falso, ¿qué haces?", o:[["Lo reporto a TI o gerencia y aviso a mis compañeros.",2],["Lo marco como spam.",1],["Lo borro y sigo trabajando.",0]]}
+  ]},
+ B: {
+  title:"Caso B · Pedido urgente del gerente",
+  mail:{from:"Carlos Rivas - Gerente General", addr:"carlos.rivas.gerencia@gmail.com", to:"Tesorería", subject:"Transferencia confidencial HOY",
+   body:"Hola,\nEstoy en una reunión con un cliente en Arequipa y necesito que hoy hagas una transferencia de S/ 9 800 a la cuenta 0011-0274-0200591834 para cerrar un trato.\nEs confidencial, no lo comentes con nadie. No puedo atender llamadas.\nCarlos"},
+  note:"El gerente siempre escribe desde su correo de la empresa @textilesandinos.com.pe",
+  items:[
+   {q:"¿Qué tan riesgoso te parece este correo?", o:[["Bajo: lo firma el gerente general.",0],["Alto: pide dinero con urgencia, secreto y sin poder confirmar.",2],["Medio: es raro, pero el gerente a veces está de viaje.",1]]},
+   {q:"Si fuera un ataque, ¿de qué tipo sería?", o:[["Fraude BEC: suplantan al gerente para que transfieras dinero.",2],["Correo publicitario (spam).",0],["Phishing genérico para robar contraseñas.",1]]},
+   {q:"¿Qué pasaría si haces la transferencia?", o:[["La empresa pierde el dinero y es muy difícil recuperarlo.",2],["El gerente se molestaría por el retraso.",0],["Habría que reclamarle al banco, que suele devolver el dinero.",1]]},
+   {q:"¿Qué haces primero?", o:[["Llamo al gerente a su número registrado o le pregunto a su asistente.",2],["Respondo el correo para pedirle más detalles.",0],["Le aviso a mi jefe directo y espero.",1]]},
+   {q:"¿Por qué esa es la mejor acción?", o:[["Porque así el gerente ve que soy responsable.",0],["Porque confirma el pedido por un canal que el atacante no controla.",2],["Porque así lo dice el manual de la empresa.",1]]},
+   {q:"Al revisar el correo, ¿en qué te fijas para confirmar la sospecha?", o:[["En la dirección completa del remitente y su dominio.",2],["En la firma y el saludo.",0],["En la ortografía del mensaje.",1]]},
+   {q:"Después de confirmar que era falso, ¿qué haces?", o:[["Lo borro y sigo trabajando.",0],["Lo reporto a TI o gerencia y aviso a mis compañeros.",2],["Lo marco como spam.",1]]}
+  ]}
+};
+
+/* ===================== Escape room: 5 misiones ===================== */
+const MISSIONS = [
+ {id:1, name:"Bandeja en alerta", badge:"Ojo de halcón", digit:"4", dims:"Conciencia e identificación",
+  story:"Son las 4:47 p. m. en Textiles Andinos SAC. El sistema de pagos cierra a las 5:00 y acaban de llegar cuatro correos. Un grupo de estafadores está detrás de uno o más de ellos.",
+  ask:"Marca los correos sospechosos.", type:"multi",
+  options:[
+   ["Gerencia · \"Transferencia urgente y confidencial\" · gerencia@textiles-andinos.co", true],
+   ["Hilos del Sur · \"Actualizamos nuestra cuenta bancaria\" · cobranzas@hilosdelsur-pagos.com", true],
+   ["RR. HH. · \"Recordatorio: capacitación del viernes\" · rrhh@textilesandinos.com.pe", false],
+   ["Contabilidad · \"Reporte mensual de gastos\" · mlopez@textilesandinos.com.pe", false]],
+  hints:["Fíjate en qué correos piden mover dinero.","Compara los dominios: el de la empresa es @textilesandinos.com.pe.","Son sospechosos los dos que piden dinero y vienen de dominios que no son los habituales."],
+  ef:"Los correos BEC piden pagos o cambios de cuenta y llegan desde dominios parecidos, pero no iguales, a los reales."},
+ {id:2, name:"Lupa al remitente", badge:"Detective de remitentes", digit:"7", dims:"Identificación",
+  story:"Abres el correo de \"Gerencia\". Revisa la cabecera con lupa.", type:"clues",
+  ask:"Toca las DOS pistas que delatan el engaño.",
+  options:[
+   ["Nombre visible: Carlos Rivas – Gerente General", false],
+   ["Dirección: gerencia@textiles-andinos.co", true],
+   ["Responder a: carlos.rivas.gg@gmail.com", true],
+   ["Asunto: Transferencia urgente y confidencial", false],
+   ["Firma: Carlos Rivas, Gerente General", false]],
+  hints:["El nombre y la firma los puede escribir cualquiera.","Mira la parte técnica de la cabecera: las direcciones.","El dominio tiene un guion y termina en .co, y las respuestas van a un Gmail."],
+  ef:"El nombre visible se puede falsificar. Lo que delata el BEC es el dominio parecido (textiles-andinos.co) y un \"Responder a\" que envía tus respuestas al atacante."},
+ {id:3, name:"¿Qué está en juego?", badge:"Analista de riesgo", digit:"2", dims:"Evaluación del impacto",
+  story:"El correo pide transferir S/ 18 500 hoy, en secreto, porque el gerente \"está en reunión\".", type:"multi",
+  ask:"¿Qué presiones usa el atacante para que no pienses? Marca todas las que apliquen.",
+  options:[["Autoridad: se hace pasar por el gerente", true],["Urgencia: tiene que ser hoy", true],["Secreto: no lo comentes", true],["Un premio o sorteo", false]],
+  hints:["Lee el correo otra vez: ¿quién lo pide, para cuándo y cómo?","Hay tres presiones; ninguna tiene que ver con premios.","Autoridad, urgencia y secreto: con eso busca que pagues sin consultar."],
+  ef:"El BEC no necesita virus: usa la autoridad, la urgencia y el secreto para que la persona actúe en automático. Si pagas, la empresa pierde el dinero y es muy difícil recuperarlo."},
+ {id:4, name:"Elige tu defensa", badge:"Defensor", digit:"9", dims:"Elección y justificación",
+  story:"Tienes 10 minutos antes del cierre. ¿Qué haces?", type:"single",
+  ask:"Elige la mejor acción.",
+  options:[["Pago para no molestar al gerente.",false],["Respondo el correo y pido confirmación.",false],["Llamo al gerente a su número registrado en la empresa.",true],["Reenvío el correo a todos para preguntar.",false]],
+  hints:["Si respondes el correo, ¿a quién le llega la respuesta?","Confirma por un medio que el atacante no controle.","Llama al gerente al número que la empresa ya tiene registrado."],
+  ef:"Confirmar por otro canal, como una llamada al número registrado, rompe el engaño: el atacante controla el correo, pero no el teléfono del gerente real."},
+ {id:5, name:"Protocolo de cierre", badge:"Guardián BEC", digit:"5", dims:"Ejecución, revisión y seguimiento",
+  story:"El gerente real te confirma por teléfono que nunca pidió esa transferencia. Ahora cierra el incidente.", type:"order",
+  ask:"Ordena los pasos del 1 al 4.",
+  options:["No pagar ni responder el correo","Confirmar por teléfono con el gerente","Reportar el correo a TI y a gerencia","Avisar al equipo para que no caiga nadie más"],
+  hints:["Primero detén el daño.","Antes de reportar, confirma que es falso.","Orden: no pagar, confirmar, reportar, avisar al equipo."],
+  ef:"Primero se detiene el daño, luego se confirma, se reporta para bloquear al atacante y se avisa al equipo para que no vuelva a pasar."}
+];
+const REFLECT = ["¿Qué señal revisarías primero la próxima vez?","¿Qué te hizo dudar del remitente?","¿Qué presión crees que funciona más en tu trabajo?","¿Con quién confirmarías un pago en tu empresa?","¿Qué cambiarías en tu forma de revisar correos?"];
+
+/* ===================== Estado ===================== */
+const qs = new URLSearchParams(location.search);
+const DEMO = qs.get("demo")==="1";
+const S = {id:null, group:null, t0:null, pre:null, post:null, preItems:[], postItems:[], game:{points:0,hints:0,errors:0,t:0,reflect:[]}, m:0};
+const app = document.getElementById("app"), chips = document.getElementById("chips");
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function setChips(extra){chips.innerHTML=(S.id?`<span class="chip">Participante <b>${S.id}</b></span>`:"")+(extra||"");}
+function go(html){app.innerHTML=html;window.scrollTo({top:0,behavior:"smooth"});}
+
+/* ===================== Pantallas ===================== */
+function start(){
+  if(DEMO){S.id="demo";S.group="J";S.t0=Date.now();return gameIntro();}
+  if(qs.get("admin")==="1") return admin();
+  setChips();
+  go(`<span class="label">Estudio piloto · Semana 13</span>
+  <h1>¿Detectarías un fraude por correo antes de que te cueste dinero?</h1>
+  <p>Vas a resolver dos casos cortos y, según el grupo que te toque, un juego de unos 10 minutos. No hay respuestas que te perjudiquen: medimos el método de capacitación, no a ti.</p>
+  <p class="muted small">Participación voluntaria y anónima: solo registramos tu número de participante y tus respuestas. Puedes retirarte cuando quieras.</p>
+  <label for="pid"><b>Número de participante</b> (te lo da el responsable)</label>
+  <div class="row"><input id="pid" type="number" min="1" max="40" inputmode="numeric" placeholder="1 a 40" style="width:140px">
+  <button id="b">Acepto y empiezo</button></div>
+  <p id="err" class="small" style="color:var(--bad)"></p>`);
+  document.getElementById("b").onclick=()=>{
+    const v=parseInt(document.getElementById("pid").value,10);
+    if(!(v>=1&&v<=40)){document.getElementById("err").textContent="Escribe un número entre 1 y 40.";return;}
+    S.id=v;S.group=ASSIGN[v-1];S.t0=Date.now();test("A",()=>S.group==="J"?gameIntro():controlBridge());
+  };
+}
+
+function test(formKey, next){
+  const F=FORMS[formKey]; setChips(`<span class="chip">${formKey==="A"?"Test inicial":"Test final"}</span>`);
+  const order=F.items.map((it,i)=>({it,i,opts:shuffle(it.o)}));
+  go(`<span class="label">${formKey==="A"?"Test inicial":"Test final"} · ${esc(F.title)}</span>
+  <p>Lee el correo y responde como lo harías en tu trabajo.</p>
+  <div class="mail"><div class="hd"><div><b>De:</b> ${esc(F.mail.from)} &lt;<span class="mono">${esc(F.mail.addr)}</span>&gt;</div><div><b>Para:</b> ${esc(F.mail.to)}</div><div><b>Asunto:</b> ${esc(F.mail.subject)}</div></div><div class="bd">${esc(F.mail.body)}</div></div>
+  <p class="small muted">Dato: ${esc(F.note)}</p>
+  ${order.map((x,k)=>`<fieldset class="opts" style="border:0;padding:0;margin:0"><legend><b>${k+1}. ${esc(x.it.q)}</b></legend>
+    ${x.opts.map((o,j)=>`<label class="opt"><input type="radio" name="q${x.i}" value="${o[1]}"><span>${esc(o[0])}</span></label>`).join("")}</fieldset>`).join("")}
+  <p id="err" class="small" style="color:var(--bad)"></p>
+  <div class="row"><button id="send">Enviar respuestas</button></div>`);
+  app.querySelectorAll(".opt input").forEach(r=>r.addEventListener("change",()=>{app.querySelectorAll(`input[name="${r.name}"]`).forEach(x=>x.closest(".opt").classList.toggle("sel",x.checked));}));
+  document.getElementById("send").onclick=()=>{
+    const sc=[];for(let i=0;i<7;i++){const c=app.querySelector(`input[name="q${i}"]:checked`);if(!c){document.getElementById("err").textContent="Te falta responder la pregunta del bloque "+(order.findIndex(x=>x.i===i)+1)+".";return;}sc.push(+c.value);}
+    const tot=sc.reduce((a,b)=>a+b,0);
+    if(formKey==="A"){S.pre=tot;S.preItems=sc;}else{S.post=tot;S.postItems=sc;}
+    next();
+  };
+}
+
+function controlBridge(){
+  setChips(`<span class="chip">Grupo de comparación</span>`);
+  go(`<span class="label">Grupo de comparación</span><h2>Gracias. Pasemos al segundo caso.</h2>
+  <p>En el estudio original de Keller (2026), el grupo de control solo respondió los tests, sin jugar. Tú estás en ese grupo.</p>
+  <div class="row"><button id="b">Continuar</button></div>`);
+  document.getElementById("b").onclick=()=>test("B",finish);
+}
+
+function gameIntro(){
+  S.game.tStart=Date.now();
+  setChips(`<span class="chip">Escape room</span><span class="chip timer" id="tm">15:00</span>`);
+  tick();
+  go(`<span class="label">Escape room · Operación Transferencia</span>
+  <h1>Bloquea el pago falso antes de las 5:00 p. m.</h1>
+  <div class="agent"><div class="av">A</div><p>Hola, soy <b>Ada</b>, tu coach de seguridad. Eres analista de finanzas en Textiles Andinos SAC. Un grupo de estafadores quiere desviar un pago. Supera las <b>5 misiones</b>, gana un dígito en cada una y usa el código final para bloquear la transferencia. Si te trabas, pídeme una pista: te daré tres, de la más general a la más específica.</p></div>
+  <div class="digits" aria-label="Dígitos del código">${MISSIONS.map(()=>"<span>?</span>").join("")}</div>
+  <div class="row"><button id="b">Empezar la misión 1</button></div>`);
+  document.getElementById("b").onclick=()=>mission(0);
+}
+let timerH=null;
+function tick(){clearInterval(timerH);timerH=setInterval(()=>{const el=document.getElementById("tm");if(!el||!S.game.tStart)return;const left=Math.max(0,900-Math.floor((Date.now()-S.game.tStart)/1000));el.textContent=String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0");},500);}
+
+function digitsHtml(n){return `<div class="digits">${MISSIONS.map((m,i)=>`<span class="${i<n?"got":""}">${i<n?m.digit:"?"}</span>`).join("")}</div>`;}
+
+function mission(i){
+  const M=MISSIONS[i]; S.m=i; let hintsUsed=0, wrong=0; let state=[];
+  const opts = M.type==="order"? null : M.options.map((o,k)=>({t:o[0],ok:o[1],k}));
+  const shown = M.type==="order"? shuffle(M.options.map((t,k)=>({t,k}))) : shuffle(opts);
+  const body = M.type==="clues"
+    ? `<div class="mail"><div class="hd small">Cabecera del correo</div><div class="bd"><div class="clues">${shown.map(o=>`<button class="clue" data-k="${o.k}">${esc(o.t)}</button>`).join("")}</div></div></div>`
+    : M.type==="order"
+    ? `<div class="opts">${shown.map(({t,k})=>`<label class="opt" style="align-items:center"><select data-k="${k}" aria-label="Posición de: ${esc(t)}"><option value="">#</option>${[1,2,3,4].map(n=>`<option>${n}</option>`).join("")}</select><span>${esc(t)}</span></label>`).join("")}</div>`
+    : `<div class="opts">${shown.map(o=>`<label class="opt"><input type="${M.type==="single"?"radio":"checkbox"}" name="m" value="${o.k}"><span>${esc(o.t)}</span></label>`).join("")}</div>`;
+  go(`<div class="progress">${MISSIONS.map((m,k)=>`<i class="${k<i?"done":""}"></i>`).join("")}</div>
+  <span class="label">Misión ${M.id} de 5 · ${esc(M.dims)}</span>
+  <h2>${esc(M.name)}</h2>
+  <p>${esc(M.story)}</p>
+  <p><b>${esc(M.ask)}</b></p>
+  ${body}
+  <div id="fb"></div>
+  <div class="row"><button id="check">Comprobar</button><button class="ghost" id="hint">Pedir pista a Ada (${3-hintsUsed})</button></div>
+  ${digitsHtml(i)}`);
+  app.querySelectorAll(".opt input").forEach(r=>r.addEventListener("change",()=>app.querySelectorAll(".opt input").forEach(x=>x.closest(".opt").classList.toggle("sel",x.checked))));
+  app.querySelectorAll(".clue").forEach(b=>b.onclick=()=>b.classList.toggle("sel"));
+  const fb=document.getElementById("fb");
+  document.getElementById("hint").onclick=e=>{
+    if(hintsUsed>=3)return; hintsUsed++; S.game.hints++;
+    fb.innerHTML=`<div class="agent"><div class="av">A</div><p><b>Pista ${hintsUsed}:</b> ${esc(M.hints[hintsUsed-1])}</p></div>`;
+    e.target.textContent=`Pedir pista a Ada (${3-hintsUsed})`; if(hintsUsed>=3)e.target.disabled=true;
+  };
+  document.getElementById("check").onclick=()=>{
+    let ok=false;
+    if(M.type==="order"){
+      const sel=[...app.querySelectorAll("select")];
+      if(sel.some(s=>!s.value)){fb.innerHTML=`<div class="fb info">Asigna un número a cada paso.</div>`;return;}
+      ok=sel.every(s=>+s.value===+s.dataset.k+1);
+    } else if(M.type==="clues"){
+      const s=[...app.querySelectorAll(".clue.sel")].map(b=>+b.dataset.k);
+      ok=s.length===opts.filter(o=>o.ok).length && s.every(k=>opts[k].ok);
+    } else {
+      const s=[...app.querySelectorAll(".opt input:checked")].map(x=>+x.value);
+      if(!s.length){fb.innerHTML=`<div class="fb info">Elige al menos una opción.</div>`;return;}
+      ok=s.length===opts.filter(o=>o.ok).length && s.every(k=>opts[k].ok);
+    }
+    if(ok){
+      const pts=Math.max(20,100-20*hintsUsed-10*wrong); S.game.points+=pts;
+      return badge(i,pts,`<div class="fb ok"><b>¡Correcto!</b><span>${esc(M.ef)}</span></div>`);
+    }
+    wrong++; S.game.errors++;
+    if(wrong>=2){
+      const correct = M.type==="order"? M.options.map((t,k)=>`${k+1}. ${t}`).join(" · ") : opts.filter(o=>o.ok).map(o=>o.t).join(" · ");
+      fb.innerHTML=`<div class="fb bad"><b>Todavía no.</b><span>La respuesta correcta es: ${esc(correct)}</span><span>${esc(M.ef)}</span></div><div class="row" style="margin-top:8px"><button class="dark" id="cont">Entendido, continuar</button></div>`;
+      document.getElementById("cont").onclick=()=>{S.game.points+=20;badge(i,20,"");};
+    } else {
+      fb.innerHTML=`<div class="fb bad"><b>Todavía no.</b><span>Revisa otra vez o pídele una pista a Ada.</span></div>`;
+    }
+  };
+}
+
+function badge(i,pts,fbHtml){
+  const M=MISSIONS[i];
+  go(`${fbHtml}
+  <div class="badge"><div class="medal">${i+1}</div><div><span class="label">Insignia desbloqueada</span><h2>${esc(M.badge)}</h2><p class="small">+${pts} puntos · dígito <b>${M.digit}</b> conseguido</p></div></div>
+  ${digitsHtml(i+1)}
+  <label for="rf"><b>Reflexión rápida (opcional):</b> ${esc(REFLECT[i])}</label>
+  <textarea id="rf" maxlength="200"></textarea>
+  <div class="row"><button id="b">${i<4?"Siguiente misión":"Ir a la caja de pagos"}</button></div>`);
+  document.getElementById("b").onclick=()=>{S.game.reflect[i]=document.getElementById("rf").value.trim();i<4?mission(i+1):vault();};
+}
+
+function vault(){
+  go(`<span class="label">Final</span><h2>Caja de pagos</h2>
+  <p>Escribe el código de 5 dígitos para bloquear la transferencia falsa.</p>
+  ${digitsHtml(5)}
+  <div class="row"><input id="code" type="text" inputmode="numeric" maxlength="5" style="width:150px;letter-spacing:.3em;font-weight:700"><button id="b">Bloquear</button></div><div id="fb"></div>`);
+  document.getElementById("b").onclick=()=>{
+    if(document.getElementById("code").value.trim()===MISSIONS.map(m=>m.digit).join("")){
+      S.game.t=Math.round((Date.now()-S.game.tStart)/1000);clearInterval(timerH);
+      go(`<span class="label">Escapaste</span><h1>Transferencia bloqueada a tiempo</h1>
+      <div class="agent"><div class="av">A</div><p>¡Bien hecho! Detuviste un fraude BEC con <b>${S.game.points}</b> puntos. Recuerda la regla de oro: <b>ningún pago ni cambio de cuenta se aprueba solo por correo; siempre se confirma por otro canal.</b></p></div>
+      <div class="row"><button id="b">${DEMO?"Volver a empezar":"Ir al test final"}</button></div>`);
+      document.getElementById("b").onclick=()=>DEMO?location.reload():test("B",finish);
+    } else document.getElementById("fb").innerHTML=`<div class="fb bad">Ese no es el código. Revisa los dígitos de arriba.</div>`;
+  };
+}
+
+function finish(){
+  const total=Math.round((Date.now()-S.t0)/1000);
+  const row=[S.id,S.group,S.pre,S.post,S.post-S.pre,...S.preItems,...S.postItems,S.group==="J"?S.game.points:"",S.group==="J"?S.game.hints:"",S.group==="J"?S.game.errors:"",S.group==="J"?S.game.t:"",total].join(",");
+  setChips(`<span class="chip">Fin</span>`);
+  go(`<span class="label">¡Gracias por participar!</span>
+  <h2>Envía tu código de resultados</h2>
+  <p>Cópialo y pégalo en el chat que indicó el responsable (o muéstrale esta pantalla).</p>
+  <div class="code" id="code">${esc(row)}</div>
+  <div class="row"><button id="cp">Copiar código</button><span id="msg" class="small muted"></span></div>
+  <p class="small muted">Test inicial: ${S.pre}/14 · Test final: ${S.post}/14</p>`);
+  document.getElementById("cp").onclick=async()=>{
+    try{await navigator.clipboard.writeText(row);document.getElementById("msg").textContent="Copiado.";}
+    catch(e){const r=document.createRange();r.selectNodeContents(document.getElementById("code"));const s=getSelection();s.removeAllRanges();s.addRange(r);document.getElementById("msg").textContent="Selecciona y copia el texto.";}
+  };
+}
+
+/* ===================== Panel del responsable (?admin=1) ===================== */
+const HEAD=["id","grupo","pre","post","ganancia",...[1,2,3,4,5,6,7].map(k=>"pre_d"+k),...[1,2,3,4,5,6,7].map(k=>"post_d"+k),"puntos","pistas","errores","t_juego_s","t_total_s"];
+function admin(){
+  go(`<span class="label">Panel del responsable</span><h2>Resultados del piloto</h2>
+  <p class="small">Pega aquí los códigos que te enviaron (uno por línea).</p>
+  <textarea id="raw" style="min-height:160px" class="mono"></textarea>
+  <div class="row"><button id="calc">Calcular</button><button class="ghost" id="dl">Descargar CSV</button></div>
+  <div id="out"></div>`);
+  const parse=()=>document.getElementById("raw").value.split(/\n+/).map(l=>l.trim()).filter(l=>/^\d+,[JC],/.test(l)).map(l=>l.split(","));
+  document.getElementById("calc").onclick=()=>{
+    const rows=parse(), seen=new Set(), data=rows.filter(r=>!seen.has(r[0])&&seen.add(r[0]));
+    const g=k=>data.filter(r=>r[1]===k);
+    const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN, sd=a=>{const m=mean(a);return a.length>1?Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1)):NaN;};
+    const st=k=>{const d=g(k),pre=d.map(r=>+r[2]),post=d.map(r=>+r[3]),ga=d.map(r=>+r[4]);return {n:d.length,pre:mean(pre),post:mean(post),ga:mean(ga),sdga:sd(ga)};};
+    const J=st("J"),C=st("C"); const sp=Math.sqrt(((J.n-1)*J.sdga**2+(C.n-1)*C.sdga**2)/(J.n+C.n-2)); const d=(J.ga-C.ga)/sp; const gH=d*(1-3/(4*(J.n+C.n)-9));
+    const f=x=>isFinite(x)?x.toFixed(2):"–";
+    document.getElementById("out").innerHTML=`<div class="tablewrap"><table><tr><th>Grupo</th><th>n</th><th>Test inicial (0-14)</th><th>Test final (0-14)</th><th>Ganancia media</th><th>DE ganancia</th></tr>
+    <tr><td>Juego</td><td>${J.n}</td><td>${f(J.pre)}</td><td>${f(J.post)}</td><td>${f(J.ga)}</td><td>${f(J.sdga)}</td></tr>
+    <tr><td>Control</td><td>${C.n}</td><td>${f(C.pre)}</td><td>${f(C.post)}</td><td>${f(C.ga)}</td><td>${f(C.sdga)}</td></tr></table></div>
+    <p class="small">Diferencia de ganancias (juego − control): <b>${f(J.ga-C.ga)}</b> puntos · Tamaño del efecto (g de Hedges): <b>${f(gH)}</b>. La prueba estadística (Mann-Whitney y ANCOVA) se corre con <span class="mono">analisis.py</span>.</p>`;
+  };
+  document.getElementById("dl").onclick=()=>{
+    const csv=[HEAD.join(","),...parse().map(r=>r.join(","))].join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="resultados.csv";a.click();
+  };
+}
+start();
+</script>
+</body>
+</html>
